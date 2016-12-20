@@ -185,3 +185,22 @@ function isushibsiteaccess_get_name($fuid) {
   
   return $name;
 }
+
+
+/**
+ * Implements hook_user_role_delete().
+ */
+function isushibsiteaccess_user_role_delete($role) {
+  $role_list = variable_get('isushibsiteaccess_assignable_roles', array());
+  $updated_roles = array();
+  if (in_array($role->rid, $role_list, true)) {
+    foreach ($role_list as $role_key=>$rid) {
+      if ($rid !== $role->rid) {
+        $updated_roles[$rid] = $role_list[$role_key];
+      }
+    }
+    unset($updated_roles[DRUPAL_ANONYMOUS_RID]);
+    unset($updated_roles[DRUPAL_AUTHENTICATED_RID]);
+    variable_set('isushibsiteaccess_assignable_roles', $updated_roles);
+  }
+}
