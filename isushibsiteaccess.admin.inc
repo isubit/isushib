@@ -51,8 +51,9 @@ function isushibsiteaccess_settings() {
       $edit_user = l(t('edit'), "user/$u->uid/edit", array('query' => array('destination' => 'admin/config/people/isushibsiteaccess')));
       $edit_user .= '&nbsp;&nbsp;';
     }
-    if ($u && $u->status != 0 && user_access('administer shibboleth site access')) {
-      $edit_user .= l(t('block'), "admin/config/people/isushibsiteaccess/block/$u->uid");
+    if ($u && user_access('administer shibboleth site access')) {
+      $toggle_text = ($u->status) ? t('unblock') : t('block');
+      $edit_user .= l($toggle_text, "admin/config/people/isushibsiteaccess/block/$u->uid");
     }
     
     $rows[] = array(
@@ -356,35 +357,61 @@ function isushibsiteaccess_user_delete_confirm_submit($form, &$form_state) {
 }
 
 
-function isushibsiteaccess_user_block_confirm($form, &$form_state, $user) {
+function isushibsiteaccess_user_toggle_block_confirm($form, &$form_state, $user) {
 
   $form['uid'] = array(
     '#type' => 'value',
     '#value' => $user->uid,
   );
 
-  return confirm_form(
-    $form,
-    t('Are you sure you want to block user %name?', array('%name' => $user->name)),
-    'admin/config/people/isushibsiteaccess',
-    t('This will block user %name forever.', array('%name' => $user->name)),
-    t('Block')
-  );
+  if ($user->status) {
+    return confirm_form(
+      $form,
+      t('Are you sure you want to unblock user %name?', array('%name' => $user->name)),
+      'admin/config/people/isushibsiteaccess',
+      t('This will restore access to the site for user %name.', array('%name' => $user->name)),
+      t('Unblock')
+    );
+  } else {
+    return confirm_form(
+      $form,
+      t('Are you sure you want to block user %name?', array('%name' => $user->name)),
+      'admin/config/people/isushibsiteaccess',
+      t('This will block user %name from using the site.', array('%name' => $user->name)),
+      t('Block')
+    );
+  }
 
 }
 
-function isushibsiteaccess_user_block_confirm_submit($form, &$form_state) {
+function isushibsiteaccess_user_toggle_block_confirm_submit($form, &$form_state) {
 
   if ($form_state['values']['confirm']) {
 
-    $account = user_load($form_state['values']['uid']);
-    $account = user_save($account, array(
-      'status' => 0,
-    ));
+    $user = user_load($form_state['values']['uid']);
 
-    watchdog('isushibsiteaccess', 'Blocked user %name.', array(
-      '%name' => $account->name,
-    ));
+    if ($user->status) {
+
+      $user = user_save($user, array(
+        'status' => 0,
+      ));
+
+      watchdog('isushibsiteaccess', 'Unblocked user %name.', array(
+        '%name' => $user->name,
+      ));
+
+    } else {
+
+      $user = user_save($user, array(
+        'status' => 1,
+      ));
+
+      watchdog('isushibsiteaccess', 'Blocked user %name.', array(
+        '%name' => $user->name,
+      ));
+
+    }
+
 
   }
 

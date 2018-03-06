@@ -41,9 +41,9 @@ function isushibsiteaccess_menu() {
     'file' => 'isushibsiteaccess.admin.inc',
   );
   $items['admin/config/people/isushibsiteaccess/block/%user'] = array(
-    'description' => 'Block a given real user',
+    'description' => 'Toggle blocked status a given real user',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('isushibsiteaccess_user_block_confirm', 5),
+    'page arguments' => array('isushibsiteaccess_user_toggle_block_confirm', 5),
     'access arguments' => array('administer shibboleth site access'),
     'type' => MENU_CALLBACK,
     'file' => 'isushibsiteaccess.admin.inc',
