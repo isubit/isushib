@@ -40,6 +40,14 @@ function isushibsiteaccess_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'isushibsiteaccess.admin.inc',
   );
+  $items['admin/config/people/isushibsiteaccess/block/%user'] = array(
+    'description' => 'Block a given real user',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('isushibsiteaccess_user_block_confirm', 5),
+    'access arguments' => array('administer shibboleth site access'),
+    'type' => MENU_CALLBACK,
+    'file' => 'isushibsiteaccess.admin.inc',
+  );
   $items['admin/config/people/isushibsiteaccess/delete'] = array(
     'description' => 'Delete a given future user',
     'page callback' => 'drupal_get_form',

@@ -9,6 +9,10 @@
  * The shibboleth site access settings page.
  */
 function isushibsiteaccess_settings() {
+
+  $shibboleth_admin_role = user_role_load_by_name('shibboleth user admin');
+  $current_user_is_shib_admin = $shibboleth_admin_role ? user_has_role($shibboleth_admin_role->rid) : FALSE;
+
   // Table of users who are already allowed to access the site and have accounts
   // along with future users who do not have accounts but may have roles 
   // preassigned.
@@ -48,6 +52,9 @@ function isushibsiteaccess_settings() {
     $edit_user = '';
     if ($u && user_access('administer users') && user_access('administer permissions')) {
       $edit_user = l(t('edit'), "user/$u->uid/edit", array('query' => array('destination' => 'admin/config/people/isushibsiteaccess')));
+    }
+    if ($current_user_is_shib_admin && $u) {
+      $edit_user .= l(t('block'), "admin/config/people/isushibsiteaccess/block/$u->uid");
     }
     
     $rows[] = array(
@@ -348,4 +355,41 @@ function isushibsiteaccess_user_delete_confirm_submit($form, &$form_state) {
   }
   drupal_set_message(t('Future user %name has been deleted.', array('%name' => $name)));
   $form_state['redirect'] = 'admin/config/people/isushibsiteaccess';
+}
+
+
+function isushibsiteaccess_user_block_confirm($form, &$form_state, $user) {
+
+  $form['uid'] = array(
+    '#type' => 'value',
+    '#value' => $user->uid,
+  );
+
+  return confirm_form(
+    $form,
+    t('Are you sure you want to block user %name?', array('%name' => $user->name)),
+    'admin/config/people/isushibsiteaccess',
+    t('This will delete user %name forever.', array('%name' => $user->name)),
+    t('Block')
+  );
+
+}
+
+function isushibsiteaccess_user_block_confirm_submit($form, &$form_state) {
+
+  if ($form_state['values']['confirm']) {
+
+    $account = user_load($form_state['values']['uid']);
+    $account = user_save($account, array(
+      'status' => 0,
+    ));
+
+    watchdog('isushibsiteaccess', 'Blocked user %name.', array(
+      '%name' => $account->name,
+    ));
+
+  }
+
+  $form_state['redirect'] = 'admin/config/people/isushibsiteaccess';
+
 }
