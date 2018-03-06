@@ -49,6 +49,7 @@ function isushibsiteaccess_settings() {
     $edit_user = '';
     if ($u && user_access('administer users') && user_access('administer permissions')) {
       $edit_user = l(t('edit'), "user/$u->uid/edit", array('query' => array('destination' => 'admin/config/people/isushibsiteaccess')));
+      $edit_user .= '&nbsp;&nbsp;';
     }
     if ($u && user_access('administer shibboleth site access')) {
       $edit_user .= l(t('block'), "admin/config/people/isushibsiteaccess/block/$u->uid");
