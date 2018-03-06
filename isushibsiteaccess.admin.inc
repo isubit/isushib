@@ -52,7 +52,7 @@ function isushibsiteaccess_settings() {
       $edit_user .= '&nbsp;&nbsp;';
     }
     if ($u && user_access('administer shibboleth site access')) {
-      $toggle_text = ($u->status) ? t('unblock') : t('block');
+      $toggle_text = ($u->status) ? t('block') : t('unblock');
       $edit_user .= l($toggle_text, "admin/config/people/isushibsiteaccess/block/$u->uid");
     }
     
@@ -367,18 +367,18 @@ function isushibsiteaccess_user_toggle_block_confirm($form, &$form_state, $user)
   if ($user->status) {
     return confirm_form(
       $form,
-      t('Are you sure you want to unblock user %name?', array('%name' => $user->name)),
-      'admin/config/people/isushibsiteaccess',
-      t('This will restore access to the site for user %name.', array('%name' => $user->name)),
-      t('Unblock')
-    );
-  } else {
-    return confirm_form(
-      $form,
       t('Are you sure you want to block user %name?', array('%name' => $user->name)),
       'admin/config/people/isushibsiteaccess',
       t('This will block user %name from using the site.', array('%name' => $user->name)),
       t('Block')
+    );
+  } else {
+    return confirm_form(
+      $form,
+      t('Are you sure you want to unblock user %name?', array('%name' => $user->name)),
+      'admin/config/people/isushibsiteaccess',
+      t('This will restore access to the site for user %name.', array('%name' => $user->name)),
+      t('Unblock')
     );
   }
 
@@ -396,7 +396,7 @@ function isushibsiteaccess_user_toggle_block_confirm_submit($form, &$form_state)
         'status' => 0,
       ));
 
-      watchdog('isushibsiteaccess', 'Unblocked user %name.', array(
+      watchdog('isushibsiteaccess', 'Blocked user %name.', array(
         '%name' => $user->name,
       ));
 
@@ -406,7 +406,7 @@ function isushibsiteaccess_user_toggle_block_confirm_submit($form, &$form_state)
         'status' => 1,
       ));
 
-      watchdog('isushibsiteaccess', 'Blocked user %name.', array(
+      watchdog('isushibsiteaccess', 'Unblocked user %name.', array(
         '%name' => $user->name,
       ));
 
