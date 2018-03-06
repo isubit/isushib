@@ -51,7 +51,7 @@ function isushibsiteaccess_settings() {
       $edit_user = l(t('edit'), "user/$u->uid/edit", array('query' => array('destination' => 'admin/config/people/isushibsiteaccess')));
       $edit_user .= '&nbsp;&nbsp;';
     }
-    if ($u && user_access('administer shibboleth site access')) {
+    if ($u && $u->status != 0 && user_access('administer shibboleth site access')) {
       $edit_user .= l(t('block'), "admin/config/people/isushibsiteaccess/block/$u->uid");
     }
     
