@@ -10,9 +10,6 @@
  */
 function isushibsiteaccess_settings() {
 
-  $shibboleth_admin_role = user_role_load_by_name('shibboleth user admin');
-  $current_user_is_shib_admin = $shibboleth_admin_role ? user_has_role($shibboleth_admin_role->rid) : FALSE;
-
   // Table of users who are already allowed to access the site and have accounts
   // along with future users who do not have accounts but may have roles 
   // preassigned.
@@ -53,7 +50,7 @@ function isushibsiteaccess_settings() {
     if ($u && user_access('administer users') && user_access('administer permissions')) {
       $edit_user = l(t('edit'), "user/$u->uid/edit", array('query' => array('destination' => 'admin/config/people/isushibsiteaccess')));
     }
-    if ($current_user_is_shib_admin && $u) {
+    if ($u && user_access('administer shibboleth site access')) {
       $edit_user .= l(t('block'), "admin/config/people/isushibsiteaccess/block/$u->uid");
     }
     
