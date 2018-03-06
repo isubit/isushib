@@ -367,7 +367,7 @@ function isushibsiteaccess_user_block_confirm($form, &$form_state, $user) {
     $form,
     t('Are you sure you want to block user %name?', array('%name' => $user->name)),
     'admin/config/people/isushibsiteaccess',
-    t('This will delete user %name forever.', array('%name' => $user->name)),
+    t('This will block user %name forever.', array('%name' => $user->name)),
     t('Block')
   );
 
