@@ -9,6 +9,7 @@
  * The shibboleth site access settings page.
  */
 function isushibsiteaccess_settings() {
+
   // Table of users who are already allowed to access the site and have accounts
   // along with future users who do not have accounts but may have roles 
   // preassigned.
@@ -48,6 +49,11 @@ function isushibsiteaccess_settings() {
     $edit_user = '';
     if ($u && user_access('administer users') && user_access('administer permissions')) {
       $edit_user = l(t('edit'), "user/$u->uid/edit", array('query' => array('destination' => 'admin/config/people/isushibsiteaccess')));
+      $edit_user .= '&nbsp;&nbsp;';
+    }
+    if ($u && user_access('administer shibboleth site access')) {
+      $toggle_text = ($u->status) ? t('block') : t('unblock');
+      $edit_user .= l($toggle_text, "admin/config/people/isushibsiteaccess/block/$u->uid");
     }
     
     $rows[] = array(
@@ -348,4 +354,67 @@ function isushibsiteaccess_user_delete_confirm_submit($form, &$form_state) {
   }
   drupal_set_message(t('Future user %name has been deleted.', array('%name' => $name)));
   $form_state['redirect'] = 'admin/config/people/isushibsiteaccess';
+}
+
+
+function isushibsiteaccess_user_toggle_block_confirm($form, &$form_state, $user) {
+
+  $form['uid'] = array(
+    '#type' => 'value',
+    '#value' => $user->uid,
+  );
+
+  if ($user->status) {
+    return confirm_form(
+      $form,
+      t('Are you sure you want to block user %name?', array('%name' => $user->name)),
+      'admin/config/people/isushibsiteaccess',
+      t('This will block user %name from using the site.', array('%name' => $user->name)),
+      t('Block')
+    );
+  } else {
+    return confirm_form(
+      $form,
+      t('Are you sure you want to unblock user %name?', array('%name' => $user->name)),
+      'admin/config/people/isushibsiteaccess',
+      t('This will restore access to the site for user %name.', array('%name' => $user->name)),
+      t('Unblock')
+    );
+  }
+
+}
+
+function isushibsiteaccess_user_toggle_block_confirm_submit($form, &$form_state) {
+
+  if ($form_state['values']['confirm']) {
+
+    $user = user_load($form_state['values']['uid']);
+
+    if ($user->status) {
+
+      $user = user_save($user, array(
+        'status' => 0,
+      ));
+
+      watchdog('isushibsiteaccess', 'Blocked user %name.', array(
+        '%name' => $user->name,
+      ));
+
+    } else {
+
+      $user = user_save($user, array(
+        'status' => 1,
+      ));
+
+      watchdog('isushibsiteaccess', 'Unblocked user %name.', array(
+        '%name' => $user->name,
+      ));
+
+    }
+
+
+  }
+
+  $form_state['redirect'] = 'admin/config/people/isushibsiteaccess';
+
 }
