@@ -174,7 +174,7 @@ function isushib_entity_presave($entity, $type) {
   if ($type == 'user' && isset($entity->is_new) && $entity->is_new && $_shibboleth_user) {
     
     // Retrieve LDAP record for this user.
-    $record = isushib_ldap_record($_shibboleth_user);
+    $ldap_record = isushib_ldap_record($_shibboleth_user);
       
     // Add LDAP information. For example, if there is a Drupal field
     // called field_displayname and an LDAP field called displayname
@@ -190,7 +190,7 @@ function isushib_entity_presave($entity, $type) {
         $entity->$field['field_name'] = array(
           $field_language => array(
             0 => array(
-              'value' => $record[$fieldname],
+              'value' => $ldap_record[$fieldname],
             )
           )
         );
