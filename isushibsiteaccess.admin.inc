@@ -104,6 +104,10 @@ function isushibsiteaccess_settings() {
  * Validate user list.
  */
 function isushibsiteaccess_settings_validate($form, &$form_state) {
+  isushibsiteaccess_clean_and_validate_user_names($form, $form_state);
+}
+
+function isushibsiteaccess_clean_and_validate_user_names($form, &$form_state) {
   $users = array();
   
   // Change to an array.
@@ -349,3 +353,94 @@ function isushibsiteaccess_user_delete_confirm_submit($form, &$form_state) {
   drupal_set_message(t('Future user %name has been deleted.', array('%name' => $name)));
   $form_state['redirect'] = 'admin/config/people/isushibsiteaccess';
 }
+
+/**
+ * Form definition for bulk revoke of user access to the site.
+ */
+function isushibsiteaccess_form_revoke() {
+  $form['revoke'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Revoke Users'),
+  );
+  $form['revoke']['isushibsiteaccess_usernames'] = array(
+    '#type' => 'textarea',
+    '#rows' => 2,
+    '#title' => t('Username(s) of user(s) to revoke'),
+    '#description' => t('Enter the username of a person who should no longer have access to the site. You may also provide multiple usernames delimited by commas (e.g., john, michael, ryan) or on multiple lines.')
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return $form;
+
+}
+function isushibsiteaccess_form_revoke_validate($form, &$form_state) {
+  isushibsiteaccess_clean_and_validate_user_names($form, $form_state);
+}
+
+function isushibsiteaccess_form_revoke_submit($form, &$form_state)
+{
+  $count_blocks = 0;
+  $count_deletes = 0;
+  $error_message = '';
+
+  foreach ($form_state['values']['clean_users'] as $name) {
+    // Is the user on the access list, if not, continue to the next user?
+    $fuid = isushibsiteaccess_get_fuid($name);
+    if (!$fuid) {
+      if ($error_message != '') {
+        $error_message = $error_message . '<br />';
+      }
+      $error_message = $error_message . t('User %name is not on the access list', array('%name' => $name));
+      continue;
+    }
+    
+	$u = user_load_by_name($name);
+
+	if ($u) {
+	  // User exists
+
+      // Block the user account
+      $u->status = 0;
+	  user_save($u);
+	  
+	  drupal_set_message(t('Blocked existing user %name.', array('%name' => $name)));
+	  watchdog('isushibsiteaccess', 'Blocked current user %name.', array('%name' => $name));
+	  
+	  $count_blocks++;
+
+	} else {
+      // Delete any roles from isushibsiteaccess
+      db_delete('isushibsiteaccess_roles')
+        ->condition('fuid', $fuid)
+        ->execute();
+	  watchdog('isushibsiteaccess', 'deleted roles for %name', array('%name' => $name));
+
+      // User doesn't exist
+      db_delete('isushibsiteaccess_users')
+        ->condition('fuid', $fuid)
+        ->execute();
+
+      drupal_set_message(t('Deleted future user %name.', array('%name' => $name)));
+	  watchdog('isushibsiteaccess', 'Deleted user entry for %name.', array('%name' => $name));
+
+	  $count_deletes++;
+    }
+  }
+
+  if ($error_message != '') {
+    form_set_error('isushibsiteaccess_nonexistant_user', $error_message);
+  }
+
+  if ($count_blocks) {
+    drupal_set_message(t('%count current users were blocked.', array('%count' => $count_blocks)));
+  }
+
+  if ($count_deletes) {
+    drupal_set_message(t('%count future users were deleted.', array('%count' => $count_deletes)));
+  }
+}
+
